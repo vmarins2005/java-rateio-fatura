@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.vmarins2005</groupId>
+  <artifactId>rateio-fatura</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Rateio de fatura</name>
+  <description>Dividir dinheiro sem perder nem inventar centavo, com as invariantes verificadas por property-based testing.</description>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <junit.version>5.11.4</junit.version>
+    <assertj.version>3.26.3</assertj.version>
+    <jqwik.version>1.9.2</jqwik.version>
+    <pitest.version>1.17.4</pitest.version>
+    <pitest-junit5.version>1.2.1</pitest-junit5.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      jqwik gera centenas de casos por propriedade e procura o contraexemplo minimo.
+      Exemplos escritos a mao cobrem o que voce imaginou; propriedades cobrem o que
+      voce nao imaginou - que e onde moram os bugs de arredondamento.
+    -->
+    <dependency>
+      <groupId>net.jqwik</groupId>
+      <artifactId>jqwik</artifactId>
+      <version>${jqwik.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.2</version>
+      </plugin>
+      <!--
+        Mutation testing. Cobertura de linha mede o que foi executado; mutation score
+        mede o que foi de fato verificado. Rodar com:
+            ./mvnw test-compile org.pitest:pitest-maven:mutationCoverage
+        O relatorio HTML sai em target/pit-reports.
+      -->
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>${pitest.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>${pitest-junit5.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <targetClasses>
+            <param>io.github.vmarins2005.rateio.*</param>
+          </targetClasses>
+          <targetTests>
+            <param>io.github.vmarins2005.rateio.*</param>
+          </targetTests>
+          <!--
+            Hoje o score e 100%. A meta fica em 95 de proposito: exigir 100 torna o build
+            refem do primeiro mutante equivalente - aquele que muda o bytecode sem mudar
+            comportamento observavel, e que nenhum teste honesto consegue matar. Ver ADR 0003.
+          -->
+          <mutationThreshold>95</mutationThreshold>
+          <outputFormats>
+            <param>HTML</param>
+            <param>XML</param>
+          </outputFormats>
+          <timestampedReports>false</timestampedReports>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
