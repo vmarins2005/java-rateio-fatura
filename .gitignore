@@ -12,3 +12,6 @@ target/
 *.log
 .DS_Store
 Thumbs.db
+
+# banco de falhas do jqwik: reexecuta primeiro o contraexemplo que quebrou por ultimo
+.jqwik-database
